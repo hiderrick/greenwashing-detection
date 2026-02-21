@@ -68,4 +68,4 @@ def risk_score(similarities: list[tuple[str, float]]) -> float:
     if not similarities:
         return 0.0
     avg_sim = sum(s for _, s in similarities) / len(similarities)
-    return round(avg_sim * 100, 2)
+    return round(max(0.0, min(100.0, avg_sim * 100)), 2)

@@ -53,9 +53,20 @@ Based on the above evidence, produce a concise greenwashing risk assessment for 
 Be specific, cite the evidence provided, and avoid speculation beyond what the data supports."""
 
     model = os.getenv("LLM_MODEL", "gpt-4o-mini")
-    resp = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-    )
-    return resp.choices[0].message.content
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        return resp.choices[0].message.content
+    except Exception as exc:
+        top_case = greenwash_matches[0][0][:200] if greenwash_matches else "No direct match."
+        peer = peer_comparisons[0][1] if peer_comparisons else "N/A"
+        return (
+            f"Risk Summary: {company} has a computed greenwashing risk score of {score}/100.\n\n"
+            f"Key Concerns: Top matched case snippet: \"{top_case}\".\n\n"
+            f"Peer Comparison: Closest same-sector peer in retrieval: {peer}.\n\n"
+            f"Recommendation: Validate high-impact claims with third-party assurance and require clearer KPIs."
+            f"\n\n(LLM fallback mode due to {type(exc).__name__}.)"
+        )
