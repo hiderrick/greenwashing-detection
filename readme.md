@@ -29,7 +29,8 @@ https://github.com/hackmamba-io/actian-vectorAI-db-beta
 
 ### Architecture Flow (Mermaid.js)
 
-```will add PNG later
+```
+<img width="5201" height="4153" alt="greenwashing-flowchart" src="https://github.com/user-attachments/assets/1378efcc-2d9b-476a-a1ea-f3e9257cf119" />
 ```
 
 ## Workflow
