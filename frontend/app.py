@@ -18,15 +18,16 @@ with st.form("upload_esg_form"):
     upload_company = st.text_input("Company", placeholder="e.g. NewEnergyCo")
     upload_sector = st.text_input("Sector", placeholder="e.g. Energy")
     upload_doc_type = st.text_input("Document Type", placeholder="e.g. AnnualReport")
-    upload_file = st.file_uploader("ESG file (.txt)", type=["txt"])
+    upload_file = st.file_uploader("ESG file (.txt or .pdf)", type=["txt", "pdf"])
     upload_submit = st.form_submit_button("Upload and Ingest")
 
 if upload_submit:
     if not upload_company or not upload_sector or not upload_doc_type or not upload_file:
-        st.warning("Please complete all upload fields and choose a .txt file.")
+        st.warning("Please complete all upload fields and choose a .txt or .pdf file.")
     else:
         try:
-            files = {"file": (upload_file.name, upload_file.getvalue(), "text/plain")}
+            content_type = "application/pdf" if upload_file.name.lower().endswith(".pdf") else "text/plain"
+            files = {"file": (upload_file.name, upload_file.getvalue(), content_type)}
             data = {
                 "company": upload_company,
                 "sector": upload_sector,

@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from io import BytesIO
 import pathlib
 import re
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from pypdf import PdfReader
 from backend.db import init_db
 from backend.detect import search_company_esg, search_similar_greenwash, search_peer_esg, risk_score
 from backend.ingest import ingest_esg_doc
@@ -21,11 +23,58 @@ app = FastAPI(
 )
 
 DATA_ESG_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "esg_docs"
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 
 def _safe_token(value: str) -> str:
     sanitized = re.sub(r"[^A-Za-z0-9]+", "", value.strip())
     return sanitized or "Unknown"
+
+
+def _extract_text_from_pdf(content_bytes: bytes) -> str:
+    try:
+        reader = PdfReader(BytesIO(content_bytes))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid PDF file.")
+
+    if reader.is_encrypted:
+        try:
+            reader.decrypt("")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Encrypted PDF files are not supported.")
+
+    pages: list[str] = []
+    for page in reader.pages:
+        page_text = (page.extract_text() or "").strip()
+        if page_text:
+            pages.append(page_text)
+
+    text = "\n\n".join(pages).strip()
+    if not text:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No extractable text found in PDF. "
+                "Please upload a text-based PDF (not image-only/scanned)."
+            ),
+        )
+    return text
+
+
+def _extract_uploaded_text(filename: str, content_bytes: bytes) -> tuple[str, str]:
+    lower_name = filename.lower()
+    if lower_name.endswith(".txt"):
+        text = content_bytes.decode("utf-8", errors="ignore").strip()
+        source_type = "txt"
+    elif lower_name.endswith(".pdf"):
+        text = _extract_text_from_pdf(content_bytes)
+        source_type = "pdf"
+    else:
+        raise HTTPException(status_code=400, detail="Only .txt and .pdf files are supported.")
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    return text, source_type
 
 
 @app.post("/upload/esg")
@@ -37,13 +86,12 @@ async def upload_esg(
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="File name is required.")
-    if not file.filename.lower().endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only .txt files are supported.")
 
     content_bytes = await file.read()
-    text = content_bytes.decode("utf-8", errors="ignore").strip()
-    if not text:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(content_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="File too large. Max size is 15 MB.")
+
+    text, source_type = _extract_uploaded_text(file.filename, content_bytes)
 
     clean_company = _safe_token(company)
     clean_sector = _safe_token(sector)
@@ -62,6 +110,7 @@ async def upload_esg(
         "company": company.strip(),
         "sector": sector.strip(),
         "doc_type": doc_type.strip(),
+        "source_type": source_type,
         "chars": len(text),
     }
 
