@@ -5,7 +5,7 @@ AI-powered ESG risk analysis tool that uses semantic vector search to compare a 
 ## Tech Stack
 
 - **Backend:** Python, FastAPI
-- **Frontend:** Streamlit
+- **Frontend:** Three.js + vanilla HTML/CSS/JS (served by FastAPI)
 - **Embeddings:** OpenAI `text-embedding-3-large`
 - **Vector DB:** Actian VectorAI DB (Docker)
 - **LLM:** OpenAI GPT-4o-mini (configurable)
@@ -58,13 +58,15 @@ uvicorn backend.main:app --reload
 
 The API will be available at `http://localhost:8000`. Check health at `http://localhost:8000/health`.
 
-### 6. Start the Frontend
+### 6. Open the Frontend
 
-```bash
-streamlit run frontend/app.py
+The frontend is served by FastAPI at the root URL:
+
+```
+http://localhost:8000/
 ```
 
-Open `http://localhost:8501` in your browser, enter a company name (e.g., `GreenCorp`, `PetroGlobal`), and click **Analyze**.
+Open it in your browser, enter a company name (e.g., `GreenCorp`, `PetroGlobal`), and click **Analyze**.
 
 ## How It Works
 
@@ -109,7 +111,7 @@ greenwashing-detection-/
 │   ├── detect.py        # Vector search and risk scoring
 │   └── rag.py           # RAG explanation generation
 ├── frontend/
-│   └── app.py           # Streamlit UI
+│   └── index.html       # Self-contained Tailwind + Three.js frontend
 ├── data/
 │   ├── esg_docs/        # ESG report text files
 │   ├── greenwash_cases/ # Known greenwashing case files

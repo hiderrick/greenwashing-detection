@@ -3,6 +3,8 @@ from io import BytesIO
 import pathlib
 import re
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
 from backend.db import init_db
 from backend.detect import search_company_esg, search_similar_greenwash, search_peer_esg, risk_score
@@ -23,6 +25,7 @@ app = FastAPI(
 )
 
 DATA_ESG_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "esg_docs"
+FRONTEND_DIR = pathlib.Path(__file__).resolve().parent.parent / "frontend"
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 DEFAULT_SECTOR = "Unknown"
 DEFAULT_DOC_TYPE = "ESGReport"
@@ -82,6 +85,14 @@ def _extract_uploaded_text(filename: str, content_bytes: bytes) -> tuple[str, st
     if not text:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
     return text, source_type
+
+
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def frontend():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 # Keep both routes for compatibility with older/newer frontend versions.
