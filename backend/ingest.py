@@ -7,26 +7,77 @@ Greenwash case files:         any .txt file in data/greenwash_cases/
 
 import os
 import pathlib
+from hashlib import sha256
 from backend.embed import embed_text
 from backend.db import get_conn, init_db
 
 DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
 
 
-def ingest_esg_doc(company: str, sector: str, doc_type: str, text: str):
-    emb = embed_text(text)
+def _hash_content(text: str) -> str:
+    return sha256(text.encode("utf-8")).hexdigest()
+
+
+def ingest_esg_doc(
+    company: str,
+    sector: str,
+    doc_type: str,
+    text: str,
+    metadata: dict | None = None,
+) -> bool:
+    metadata = metadata or {}
+    content_hash = metadata.get("content_hash") or _hash_content(text)
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO esg_documents (company, sector, doc_type, content, embedding)
-        VALUES (%s, %s, %s, %s, %s::vector)
+        SELECT 1
+        FROM esg_documents
+        WHERE content_hash = %s
+        LIMIT 1
         """,
-        (company, sector, doc_type, text, str(emb)),
+        (content_hash,),
+    )
+    if cur.fetchone():
+        cur.close()
+        conn.close()
+        return False
+
+    emb = embed_text(text)
+    cur.execute(
+        """
+        INSERT INTO esg_documents (
+            company, sector, doc_type, content, embedding,
+            source_url, source_title, source_publisher,
+            published_at, retrieved_at, source_type, retrieval_method, content_hash
+        )
+        VALUES (
+            %s, %s, %s, %s, %s::vector,
+            %s, %s, %s,
+            %s, %s, %s, %s, %s
+        )
+        """,
+        (
+            company,
+            sector,
+            doc_type,
+            text,
+            str(emb),
+            metadata.get("source_url"),
+            metadata.get("source_title"),
+            metadata.get("source_publisher"),
+            metadata.get("published_at"),
+            metadata.get("retrieved_at"),
+            metadata.get("source_type", "uploaded"),
+            metadata.get("retrieval_method", "manual_upload"),
+            content_hash,
+        ),
     )
     conn.commit()
     cur.close()
     conn.close()
+    return True
 
 
 def ingest_greenwash_example(text: str):

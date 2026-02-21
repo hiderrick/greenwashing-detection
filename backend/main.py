@@ -2,12 +2,14 @@ from contextlib import asynccontextmanager
 from io import BytesIO
 import pathlib
 import re
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
+from backend.db import get_conn
 from backend.db import init_db
 from backend.detect import search_company_esg, search_similar_greenwash, search_peer_esg, risk_score
+from backend.discovery import discover_and_ingest
 from backend.ingest import ingest_esg_doc
 from backend.rag import generate_report
 
@@ -145,12 +147,19 @@ def analyze(company: str):
     company_docs = search_company_esg(company)
 
     if not company_docs:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No ESG documents found for '{company}'. Ingest data first.",
-        )
+        return {
+            "company": company,
+            "status": "no_data",
+            "risk_score": 0.0,
+            "explanation": (
+                f"No ESG documents are available for '{company}' yet. "
+                "Try enabling live discovery again or upload a report manually."
+            ),
+            "citations": [],
+            "source_citations": [],
+        }
 
-    combined_claims = " ".join(content for content, _, _ in company_docs)
+    combined_claims = " ".join(content for content, *_ in company_docs)
 
     greenwash_matches = search_similar_greenwash(combined_claims, k=5)
     score = risk_score(greenwash_matches)
@@ -158,9 +167,11 @@ def analyze(company: str):
     sector = company_docs[0][1]
     peer_docs = search_peer_esg(company, sector, combined_claims, k=5)
 
+    company_claims_for_report = [(content, sector, doc_type) for content, sector, doc_type, *_ in company_docs]
+
     explanation = generate_report(
         company=company,
-        company_claims=company_docs,
+        company_claims=company_claims_for_report,
         greenwash_matches=greenwash_matches,
         peer_comparisons=peer_docs,
         score=score,
@@ -171,11 +182,77 @@ def analyze(company: str):
         for content, sim in greenwash_matches
     ]
 
+    discovered_sources = []
+    seen_urls: set[str] = set()
+    for _content, _sector, _doc_type, source_url, source_title, source_publisher, published_at in company_docs:
+        if not source_url or source_url in seen_urls:
+            continue
+        seen_urls.add(source_url)
+        discovered_sources.append(
+            {
+                "title": source_title or "Untitled source",
+                "url": source_url,
+                "publisher": source_publisher,
+                "published_at": published_at,
+            }
+        )
+
     return {
         "company": company,
         "risk_score": score,
         "explanation": explanation,
         "citations": citations,
+        "source_citations": discovered_sources,
+    }
+
+
+@app.post("/discover/{company}")
+def discover_company(
+    company: str,
+    sector: str = Query(DEFAULT_SECTOR),
+    max_results: int = Query(8, ge=1, le=20),
+):
+    company_clean = company.strip()
+    if not company_clean:
+        raise HTTPException(status_code=400, detail="Company is required.")
+    result = discover_and_ingest(company=company_clean, sector=sector.strip() or DEFAULT_SECTOR, max_results=max_results)
+    if result.get("status") == "disabled":
+        raise HTTPException(status_code=503, detail="Live discovery is disabled. Set LIVE_DISCOVERY_ENABLED=true.")
+    return result
+
+
+@app.get("/sources/{company}")
+def company_sources(company: str, limit: int = Query(20, ge=1, le=100)):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT source_title, source_url, source_publisher, published_at, doc_type, source_type, retrieval_method
+        FROM esg_documents
+        WHERE LOWER(company) = LOWER(%s)
+          AND source_url IS NOT NULL
+        ORDER BY id DESC
+        LIMIT %s
+        """,
+        (company.strip(), limit),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return {
+        "company": company,
+        "sources": [
+            {
+                "title": title,
+                "url": url,
+                "publisher": publisher,
+                "published_at": published_at,
+                "doc_type": doc_type,
+                "source_type": source_type,
+                "retrieval_method": retrieval_method,
+            }
+            for title, url, publisher, published_at, doc_type, source_type, retrieval_method in rows
+        ],
     }
 
 
