@@ -115,31 +115,46 @@
     <div id="ui-layer">
       <div class="mx-auto w-full max-w-6xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <header class="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <section class="glass rounded-3xl p-6 sm:p-8">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-evergreen/75">Greenwashing Detection Platform</p>
-            <h1 class="cd-headline letters mt-4 text-4xl font-bold leading-[0.92] text-evergreen sm:text-6xl lg:text-7xl">
-              <span class="cd-words-wrapper">
-                <b class="is-visible">Exposing</b>
-                <b>Challenging</b>
-                <b>Investigating</b>
-                <b>Tracking</b>
-              </span>
-              <br class="sm:hidden" />
-              <span class="inline-block">ESG claims.</span>
-            </h1>
-            <p class="mt-5 max-w-2xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
-              Companies make sustainability claims. We verify them.
-            </p>
-            <a href="#analyze" class="mt-6 inline-flex items-center rounded-full border border-jade/25 bg-white/55 px-6 py-3 text-sm font-semibold text-evergreen transition hover:bg-white/75">Run A Company Check</a>
+          <section class="glass relative overflow-hidden rounded-3xl p-6 sm:p-8">
+            <div class="relative z-10">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-evergreen/75">Greenwashing Detection Platform</p>
+              <h1 class="cd-headline letters mt-4 text-4xl font-bold leading-[0.92] text-evergreen sm:text-6xl lg:text-7xl">
+                <span class="cd-words-wrapper">
+                  <b class="is-visible">Exposing</b>
+                  <b>Challenging</b>
+                  <b>Investigating</b>
+                  <b>Tracking</b>
+                </span>
+                <br class="sm:hidden" />
+                <span class="inline-block">ESG claims.</span>
+              </h1>
+              <p class="mt-5 max-w-2xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
+                Companies make sustainability claims. We verify them. Our platform analyzes disclosures, audits, and independent sources to generate transparent greenwashing risk scores with explainable context.
+              </p>
+              <a href="#analyze" class="mt-6 inline-flex items-center rounded-full border border-jade/25 bg-white/55 px-6 py-3 text-sm font-semibold text-evergreen transition hover:bg-white/75">Run A Company Check</a>
+            </div>
           </section>
 
-          <section class="glass rounded-3xl p-6 sm:p-8">
+          <section class="glass relative overflow-hidden rounded-3xl p-6 sm:p-8">
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">What This Solves</p>
             <ul class="mt-4 space-y-3 text-sm text-evergreen/90 sm:text-base">
               <li>Distinguishes evidence from marketing claims</li>
               <li>Benchmarks statements against known greenwashing patterns</li>
               <li>Provides explainable outputs for analysts and investors</li>
             </ul>
+
+            <!-- Cartoonish Washing Machine -->
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 opacity-20 lg:opacity-40">
+              <svg width="150" height="150" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-evergreen">
+                <rect x="8" y="12" width="48" height="44" rx="4" stroke="currentColor" stroke-width="2" fill="white" />
+                <circle cx="32" cy="38" r="14" stroke="currentColor" stroke-width="2" />
+                <circle cx="32" cy="38" r="10" fill="currentColor" class="opacity-10 animate-pulse" />
+                <rect x="12" y="16" width="40" height="6" rx="1" fill="currentColor" class="opacity-10" />
+                <circle cx="16" cy="19" r="2" fill="currentColor" />
+                <circle cx="22" cy="19" r="2" fill="currentColor" />
+                <path d="M28 38C28 35.7909 29.7909 34 32 34" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="origin-center animate-[spin_3s_linear_infinite]" />
+              </svg>
+            </div>
           </section>
         </header>
 
