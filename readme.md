@@ -5,7 +5,7 @@ AI-powered ESG risk analysis tool that uses semantic vector search to compare a 
 ## Tech Stack
 
 - **Backend:** Python, FastAPI
-- **Frontend:** Streamlit
+- **Frontend:** Three.js + vanilla HTML/CSS/JS (served by FastAPI)
 - **Embeddings:** OpenAI `text-embedding-3-large`
 - **Vector DB:** Actian VectorAI DB (Docker)
 - **LLM:** OpenAI GPT-4o-mini (configurable)
@@ -58,13 +58,15 @@ uvicorn backend.main:app --reload
 
 The API will be available at `http://localhost:8000`. Check health at `http://localhost:8000/health`.
 
-### 6. Start the Frontend
+### 6. Open the Frontend
 
-```bash
-streamlit run frontend/app.py
+The frontend is served by FastAPI at the root URL:
+
+```
+http://localhost:8000/
 ```
 
-Open `http://localhost:8501` in your browser, enter a company name (e.g., `GreenCorp`, `PetroGlobal`), and click **Analyze**.
+Open it in your browser, enter a company name (e.g., `GreenCorp`, `PetroGlobal`), and click **Analyze**.
 
 ## How It Works
 
@@ -89,6 +91,9 @@ Returns a JSON response:
   "explanation": "...",
   "citations": [
     {"content": "...", "similarity": 0.65}
+  ],
+  "source_citations": [
+    {"title": "...", "url": "https://...", "publisher": "...", "published_at": "..."}
   ]
 }
 ```
@@ -97,19 +102,57 @@ Returns a JSON response:
 
 Returns `{"status": "ok"}`.
 
+### `POST /discover/{company}`
+
+Searches online sources (reports/news), extracts text, and ingests discovered documents into ESG retrieval.
+
+Query params:
+- `sector` (optional, default `Unknown`)
+- `max_results` (optional, `1-20`, default `8`)
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8000/discover/Amazon?sector=ConsumerDiscretionary&max_results=8"
+```
+
+### `GET /sources/{company}`
+
+Returns discovered-source metadata already ingested for a company.
+
+Example:
+
+```bash
+curl "http://localhost:8000/sources/Amazon?limit=20"
+```
+
+## Discovery Configuration
+
+Optional `.env` settings:
+
+```bash
+LIVE_DISCOVERY_ENABLED=true
+DISCOVERY_MODEL=gpt-4o-mini
+```
+
+Notes:
+- Discovery relies on OpenAI web-search-capable tooling availability and account quota.
+- If discovery cannot run (rate limit/quota/tooling unavailable), it returns `discovered: 0` with an `errors` array.
+
 ## Project Structure
 
 ```
 greenwashing-detection-/
 ├── backend/
-│   ├── main.py          # FastAPI app and /analyze endpoint
+│   ├── main.py          # FastAPI app and API endpoints
 │   ├── db.py            # Database connection and table init
 │   ├── embed.py         # OpenAI embedding helper
 │   ├── ingest.py        # Data ingestion CLI
 │   ├── detect.py        # Vector search and risk scoring
+│   ├── discovery.py     # Online source discovery and ingestion
 │   └── rag.py           # RAG explanation generation
 ├── frontend/
-│   └── app.py           # Streamlit UI
+│   └── index.html       # Self-contained Tailwind frontend
 ├── data/
 │   ├── esg_docs/        # ESG report text files
 │   ├── greenwash_cases/ # Known greenwashing case files

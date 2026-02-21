@@ -22,15 +22,16 @@ def search_similar_greenwash(text: str, k: int = 5) -> list[tuple[str, float]]:
     return rows
 
 
-def search_company_esg(company: str, k: int = 5) -> list[tuple[str, str, str]]:
+def search_company_esg(company: str, k: int = 8) -> list[tuple[str, str, str, str | None, str | None, str | None, str | None]]:
     """Return the company's own ESG document chunks."""
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT content, sector, doc_type
+        SELECT content, sector, doc_type, source_url, source_title, source_publisher, published_at
         FROM esg_documents
         WHERE LOWER(company) = LOWER(%s)
+        ORDER BY id DESC
         LIMIT %s
         """,
         (company, k),

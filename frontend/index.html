@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Authentic ESG Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              pistachio: "#DEF4C6",
+              mint: "#73E2A7",
+              jade: "#1C7C54",
+              evergreen: "#1B512D",
+            },
+            fontFamily: {
+              sans: ["Space Grotesk", "ui-sans-serif", "system-ui"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        color: #1b512d;
+        background:
+          radial-gradient(1000px 600px at 0% 0%, rgba(115, 226, 167, 0.2) 0%, rgba(115, 226, 167, 0) 70%),
+          radial-gradient(900px 500px at 100% 20%, rgba(28, 124, 84, 0.14) 0%, rgba(28, 124, 84, 0) 72%),
+          linear-gradient(180deg, #edf9de 0%, #def4c6 48%, #d7efbe 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: linear-gradient(rgba(27, 81, 45, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(27, 81, 45, 0.03) 1px, transparent 1px);
+        background-size: 42px 42px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      #ui-layer {
+        position: relative;
+        z-index: 1;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 10px 24px rgba(27, 81, 45, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui-layer">
+      <div class="mx-auto w-full max-w-6xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
+        <nav class="glass mb-8 rounded-2xl px-4 py-3 sm:px-6">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-semibold tracking-wide text-evergreen">AUTHENTIC ESG INTELLIGENCE</p>
+            <a href="#analyze" class="rounded-full border border-jade/30 bg-white/50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-evergreen transition hover:bg-white/70">Analyze</a>
+          </div>
+        </nav>
+
+        <header class="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <section class="glass rounded-3xl p-6 sm:p-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-evergreen/75">Greenwashing Detection Platform</p>
+            <h1 class="mt-4 text-4xl font-bold leading-[0.92] text-evergreen sm:text-6xl lg:text-7xl">WE BUILD DIGITAL REALITIES</h1>
+            <p class="mt-5 max-w-2xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
+              Verify sustainability claims with AI-powered analysis and knowledge retrieval. Search a company and get transparent risk scoring with evidence-backed context.
+            </p>
+            <a href="#analyze" class="mt-6 inline-flex items-center rounded-full border border-jade/25 bg-white/55 px-6 py-3 text-sm font-semibold text-evergreen transition hover:bg-white/75">Run A Company Check</a>
+          </section>
+
+          <section class="glass rounded-3xl p-6 sm:p-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">What This Solves</p>
+            <ul class="mt-4 space-y-3 text-sm text-evergreen/90 sm:text-base">
+              <li>Distinguishes evidence from marketing claims</li>
+              <li>Benchmarks statements against known greenwashing patterns</li>
+              <li>Provides explainable outputs for analysts and investors</li>
+            </ul>
+          </section>
+        </header>
+
+        <section id="analyze" class="glass mb-8 rounded-3xl p-6 sm:p-8">
+          <h2 class="text-2xl font-bold text-evergreen sm:text-3xl">Company Analysis</h2>
+          <p class="mt-2 text-sm text-evergreen/80 sm:text-base">Enter a company name to retrieve greenwashing risk insights.</p>
+
+          <form id="analyze-form" class="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input
+              type="text"
+              name="company"
+              required
+              placeholder="e.g., GreenCorp"
+              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen placeholder-evergreen/50 outline-none focus:border-jade"
+            />
+            <button type="submit" class="rounded-xl bg-evergreen px-6 py-3 text-sm font-semibold text-pistachio transition hover:bg-jade">Analyze Risk</button>
+          </form>
+          <label class="mt-3 inline-flex items-center gap-2 text-sm text-evergreen/85">
+            <input id="use-discovery" type="checkbox" class="h-4 w-4 rounded border-jade/40 text-jade focus:ring-jade" checked />
+            Use OpenAI live discovery (reports + news) before analysis
+          </label>
+
+          <p id="analyze-status" class="mt-3 text-sm font-medium text-evergreen"></p>
+
+          <article id="results" class="mt-5 hidden rounded-2xl border border-white/60 bg-white/55 p-4 sm:p-5">
+            <div class="flex items-center gap-3">
+              <p id="risk-score" class="text-3xl font-bold text-evergreen sm:text-5xl">0<span class="text-base sm:text-lg">/100</span></p>
+              <span id="risk-badge" class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide">Risk</span>
+            </div>
+            <p id="risk-explanation" class="mt-4 whitespace-pre-line text-sm leading-relaxed text-evergreen/90 sm:text-base"></p>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-evergreen/70">Matched Greenwashing Patterns</p>
+            <ul id="risk-citations" class="mt-4 grid gap-2"></ul>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-evergreen/70">Discovered Sources Used</p>
+            <ul id="source-citations" class="mt-2 grid gap-2"></ul>
+          </article>
+        </section>
+
+        <section id="upload" class="glass mb-8 rounded-3xl p-6 sm:p-8">
+          <h2 class="text-2xl font-bold text-evergreen sm:text-3xl">Upload ESG Report</h2>
+          <p class="mt-2 text-sm text-evergreen/80 sm:text-base">Upload a `.txt` or `.pdf` ESG document to ingest it into the retrieval system.</p>
+
+          <form id="upload-form" class="mt-5 grid gap-3 sm:grid-cols-2">
+            <input
+              type="text"
+              name="company"
+              required
+              placeholder="Company name"
+              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen placeholder-evergreen/50 outline-none focus:border-jade"
+            />
+            <select name="sector" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
+              <option>Unknown</option>
+              <option>Energy</option>
+              <option>Utilities</option>
+              <option>Materials</option>
+              <option>Industrials</option>
+              <option>ConsumerDiscretionary</option>
+              <option>ConsumerStaples</option>
+              <option>HealthCare</option>
+              <option>Financials</option>
+              <option>InformationTechnology</option>
+              <option>CommunicationServices</option>
+              <option>RealEstate</option>
+              <option>Other</option>
+            </select>
+            <select name="doc_type" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
+              <option>ESGReport</option>
+              <option>AnnualReport</option>
+              <option>SustainabilityReport</option>
+              <option>ClimateReport</option>
+              <option>ImpactReport</option>
+              <option>CSRReport</option>
+              <option>Other</option>
+            </select>
+            <input
+              type="file"
+              name="file"
+              accept=".txt,.pdf"
+              required
+              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none file:mr-4 file:rounded-lg file:border-0 file:bg-evergreen file:px-3 file:py-2 file:text-xs file:font-semibold file:text-pistachio hover:file:bg-jade"
+            />
+            <button type="submit" class="rounded-xl bg-evergreen px-6 py-3 text-sm font-semibold text-pistachio transition hover:bg-jade sm:col-span-2">Upload & Ingest</button>
+          </form>
+
+          <p id="upload-status" class="mt-3 text-sm font-medium text-evergreen"></p>
+        </section>
+
+        <section class="glass mb-8 rounded-3xl p-6 sm:p-8">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">The Greenwashing Problem</p>
+          <h2 class="mt-2 text-2xl font-bold text-evergreen sm:text-3xl">Why It Matters</h2>
+          <p class="mt-3 max-w-3xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
+            Greenwashing happens when companies overstate environmental progress or hide critical context. It creates false confidence for investors,
+            weakens trust in ESG reporting, and can redirect capital away from genuinely sustainable businesses.
+          </p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-3">
+            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Misleading Claims</p>
+              <p class="mt-2 text-sm text-evergreen/90">Broad “eco-friendly” statements without measurable evidence.</p>
+            </article>
+            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Selective Reporting</p>
+              <p class="mt-2 text-sm text-evergreen/90">Highlighting wins while omitting high-impact emissions data.</p>
+            </article>
+            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Weak Verification</p>
+              <p class="mt-2 text-sm text-evergreen/90">Claims not backed by peer comparisons or source evidence.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="glass rounded-2xl p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">Strategy</p>
+            <h3 class="mt-2 text-xl font-bold text-evergreen">Signal Over Noise</h3>
+            <p class="mt-2 text-sm text-evergreen/85">We focus on material ESG claims and measurable proof quality.</p>
+          </article>
+          <article class="glass rounded-2xl p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">3D Web</p>
+            <h3 class="mt-2 text-xl font-bold text-evergreen">Calm, Professional UI</h3>
+            <p class="mt-2 text-sm text-evergreen/85">A minimal experience that keeps attention on analysis results.</p>
+          </article>
+          <article class="glass rounded-2xl p-5 sm:col-span-2 lg:col-span-1">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">Knowledge Retrieval</p>
+            <h3 class="mt-2 text-xl font-bold text-evergreen">Evidence-Backed Results</h3>
+            <p class="mt-2 text-sm text-evergreen/85">Every output is tied to retrieved examples and similarity signals.</p>
+          </article>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = window.location.origin;
+
+      const form = document.getElementById("analyze-form");
+      const uploadForm = document.getElementById("upload-form");
+      const statusEl = document.getElementById("analyze-status");
+      const uploadStatusEl = document.getElementById("upload-status");
+      const useDiscoveryEl = document.getElementById("use-discovery");
+      const resultsEl = document.getElementById("results");
+      const scoreEl = document.getElementById("risk-score");
+      const badgeEl = document.getElementById("risk-badge");
+      const explanationEl = document.getElementById("risk-explanation");
+      const citationsEl = document.getElementById("risk-citations");
+      const sourceCitationsEl = document.getElementById("source-citations");
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
+      }
+
+      function setUploadStatus(message, isError = false) {
+        uploadStatusEl.textContent = message;
+        uploadStatusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
+      }
+
+      function riskMeta(score) {
+        if (score > 60) return { label: "High Risk", classes: "border-red-700 text-red-700" };
+        if (score > 30) return { label: "Medium Risk", classes: "border-amber-700 text-amber-700" };
+        return { label: "Low Risk", classes: "border-jade text-jade" };
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const company = String(new FormData(form).get("company") || "").trim();
+        if (!company) {
+          setStatus("Please enter a company name.", true);
+          return;
+        }
+
+        setStatus("Running analysis...");
+        resultsEl.classList.add("hidden");
+
+        try {
+          if (useDiscoveryEl.checked) {
+            setStatus("Discovering latest reports and news with OpenAI...");
+            const controller = new AbortController();
+            const timeoutMs = 45000;
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            let discoverResp;
+            let discoverPayload;
+            try {
+              discoverResp = await fetch(`${API_URL}/discover/${encodeURIComponent(company)}?max_results=8`, {
+                method: "POST",
+                signal: controller.signal,
+              });
+              discoverPayload = await discoverResp.json().catch(() => ({}));
+            } catch (discoverError) {
+              if (discoverError && discoverError.name === "AbortError") {
+                setStatus("Discovery timed out after 45s. You can run analysis on existing docs or retry.", true);
+                return;
+              }
+              throw discoverError;
+            } finally {
+              clearTimeout(timeoutId);
+            }
+            if (!discoverResp.ok) {
+              setStatus(
+                discoverPayload.detail
+                  ? `Discovery failed: ${String(discoverPayload.detail)}`
+                  : `Discovery failed (${discoverResp.status}).`,
+                true,
+              );
+              return;
+            }
+            const discovered = Number(discoverPayload.discovered || 0);
+            const ingested = Number(discoverPayload.ingested || 0);
+            const errors = Array.isArray(discoverPayload.errors) ? discoverPayload.errors : [];
+            if (errors.length > 0) {
+              setStatus(
+                `Discovery warning (${discovered} found, ${ingested} ingested): ${errors[0]}. If this mentions rate limits, check OpenAI billing/quota.`,
+                false,
+              );
+            } else {
+              setStatus(`Discovery complete: ${discovered} found, ${ingested} ingested.`);
+            }
+          }
+
+          setStatus("Running analysis...");
+          const response = await fetch(`${API_URL}/analyze/${encodeURIComponent(company)}`);
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            setStatus(payload.detail ? String(payload.detail) : `Request failed (${response.status}).`, true);
+            return;
+          }
+
+          const score = Number(payload.risk_score || 0);
+          const meta = riskMeta(score);
+
+          scoreEl.innerHTML = `${score.toFixed(2)}<span class="text-base sm:text-lg">/100</span>`;
+          badgeEl.textContent = meta.label;
+          badgeEl.className = `rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${meta.classes}`;
+          explanationEl.textContent = String(payload.explanation || "No explanation returned.");
+          if (payload.status === "no_data") {
+            explanationEl.textContent = `${String(payload.explanation || "No data found.")}\n\nNo risk score can be computed until documents are ingested.`;
+          }
+
+          citationsEl.innerHTML = "";
+          const citations = Array.isArray(payload.citations) ? payload.citations : [];
+          for (const citation of citations) {
+            const li = document.createElement("li");
+            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/90";
+            li.textContent = `Similarity ${Number(citation.similarity || 0).toFixed(3)}: ${String(citation.content || "")}`;
+            citationsEl.appendChild(li);
+          }
+          if (citations.length === 0) {
+            const li = document.createElement("li");
+            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/80";
+            li.textContent = "No matched greenwashing pattern citations found.";
+            citationsEl.appendChild(li);
+          }
+
+          sourceCitationsEl.innerHTML = "";
+          const sources = Array.isArray(payload.source_citations) ? payload.source_citations : [];
+          for (const source of sources) {
+            const li = document.createElement("li");
+            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/90";
+            const title = String(source.title || "Untitled source");
+            const publisher = String(source.publisher || "Unknown publisher");
+            const published = String(source.published_at || "").trim();
+            const url = String(source.url || "");
+            const titleP = document.createElement("p");
+            titleP.className = "font-semibold";
+            titleP.textContent = title;
+            li.appendChild(titleP);
+
+            const metaP = document.createElement("p");
+            metaP.className = "text-xs text-evergreen/70";
+            metaP.textContent = published ? `${publisher} • ${published}` : publisher;
+            li.appendChild(metaP);
+
+            if (url) {
+              const link = document.createElement("a");
+              link.className = "mt-1 inline-block text-xs underline";
+              link.href = url;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = "View source";
+              li.appendChild(link);
+            }
+            sourceCitationsEl.appendChild(li);
+          }
+          if (sources.length === 0) {
+            const li = document.createElement("li");
+            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/80";
+            li.textContent = "No discovered source citations available yet. Enable live discovery and analyze again.";
+            sourceCitationsEl.appendChild(li);
+          }
+
+          resultsEl.classList.remove("hidden");
+          setStatus(`Analysis complete for ${payload.company || company}.`);
+        } catch (error) {
+          setStatus(`Unable to complete analysis: ${String(error)}`, true);
+        }
+      });
+
+      uploadForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(uploadForm);
+        const company = String(formData.get("company") || "").trim();
+        const file = formData.get("file");
+
+        if (!company) {
+          setUploadStatus("Please enter a company name.", true);
+          return;
+        }
+        if (!(file instanceof File) || file.size === 0) {
+          setUploadStatus("Please select a .txt or .pdf file.", true);
+          return;
+        }
+
+        setUploadStatus("Uploading and ingesting report...");
+        try {
+          const response = await fetch(`${API_URL}/upload/esg`, {
+            method: "POST",
+            body: formData,
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            setUploadStatus(payload.detail ? String(payload.detail) : `Upload failed (${response.status}).`, true);
+            return;
+          }
+
+          setUploadStatus(`Upload complete: ${payload.saved_as || "ingested"}.`);
+          uploadForm.reset();
+        } catch (error) {
+          setUploadStatus(`Unable to upload: ${String(error)}`, true);
+        }
+      });
+    </script>
+  </body>
+</html>

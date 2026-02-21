@@ -27,8 +27,34 @@ def init_db():
             sector TEXT,
             doc_type TEXT,
             content TEXT,
-            embedding VECTOR(3072)
+            embedding VECTOR(3072),
+            source_url TEXT,
+            source_title TEXT,
+            source_publisher TEXT,
+            published_at TEXT,
+            retrieved_at TEXT,
+            source_type TEXT,
+            retrieval_method TEXT,
+            content_hash TEXT
         );
+        """
+    )
+    # Backfill compatibility for existing databases created before metadata columns existed.
+    for ddl in (
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS source_url TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS source_title TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS source_publisher TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS published_at TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS retrieved_at TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS source_type TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS retrieval_method TEXT;",
+        "ALTER TABLE esg_documents ADD COLUMN IF NOT EXISTS content_hash TEXT;",
+    ):
+        cur.execute(ddl)
+    cur.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_esg_documents_content_hash
+        ON esg_documents (content_hash);
         """
     )
     cur.execute(
