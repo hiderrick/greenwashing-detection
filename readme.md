@@ -37,8 +37,7 @@ https://github.com/hackmamba-io/actian-vectorAI-db-beta
 
 ### 1. AI Search + Discovery Workflow
 
-```will add PNG later
-```
+<img src="./static/Company%20Discovery%20Pipeline-2026-02-21-224457.png" alt="Company Discovery Pipeline" width="800" />
 
 ### 2. RAG Analysis Workflow
 
