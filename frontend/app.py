@@ -13,6 +13,44 @@ st.markdown(
 
 st.divider()
 
+st.subheader("Upload ESG Document")
+with st.form("upload_esg_form"):
+    upload_company = st.text_input("Company", placeholder="e.g. NewEnergyCo")
+    upload_sector = st.text_input("Sector", placeholder="e.g. Energy")
+    upload_doc_type = st.text_input("Document Type", placeholder="e.g. AnnualReport")
+    upload_file = st.file_uploader("ESG file (.txt)", type=["txt"])
+    upload_submit = st.form_submit_button("Upload and Ingest")
+
+if upload_submit:
+    if not upload_company or not upload_sector or not upload_doc_type or not upload_file:
+        st.warning("Please complete all upload fields and choose a .txt file.")
+    else:
+        try:
+            files = {"file": (upload_file.name, upload_file.getvalue(), "text/plain")}
+            data = {
+                "company": upload_company,
+                "sector": upload_sector,
+                "doc_type": upload_doc_type,
+            }
+            res = requests.post(f"{API_URL}/upload/esg", data=data, files=files, timeout=180)
+            if res.status_code == 200:
+                payload = res.json()
+                st.success(
+                    f"Uploaded and ingested: {payload['saved_as']} "
+                    f"({payload['chars']} chars)"
+                )
+            else:
+                st.error(f"Upload failed: {res.status_code} — {res.text}")
+        except requests.ConnectionError:
+            st.error(
+                "Could not connect to the backend API. "
+                "Make sure the FastAPI server is running on http://localhost:8000."
+            )
+        except Exception as e:
+            st.error(f"Unexpected upload error: {e}")
+
+st.divider()
+
 company = st.text_input("Enter Company Name", placeholder="e.g. GreenCorp")
 
 if st.button("Analyze", type="primary", disabled=not company):
