@@ -1,172 +1,115 @@
 # Greenwashing Risk Detector
 
-AI-powered ESG risk analysis tool that uses semantic vector search to compare a company's sustainability claims against peer disclosures and verified greenwashing cases. A retrieval-augmented generation (RAG) layer produces evidence-backed explanations to help investors make trustworthy sustainable investment decisions.
+This project helps verify (or expose) sustainability claims for companies.
 
-## Tech Stack
+It combines:
+- Live source discovery (AI Search workflow web search)
+- Vector similarity search against ESG docs and known greenwashing examples
+- RAG-based explanation generation with citations
 
-- **Backend:** Python, FastAPI
-- **Frontend:** Three.js + vanilla HTML/CSS/JS (served by FastAPI)
-- **Embeddings:** OpenAI `text-embedding-3-large`
-- **Vector DB:** Actian VectorAI DB (Docker)
-- **LLM:** OpenAI GPT-4o-mini (configurable)
+## Objective
 
-## Prerequisites
+Given a company, estimate greenwashing risk by comparing its claims with:
+- Known greenwashing patterns
+- Same-sector peer disclosures
+- Newly discovered external sources (reports/news)
 
-- Docker & Docker Compose
-- Python 3.11+
-- OpenAI API key
+## Architecture
+
+- Frontend: Single-page app (`frontend/index.html`) for analyze/upload flows
+- API: FastAPI service (`backend/main.py`)
+- Retrieval + scoring: vector search and risk logic (`backend/detect.py`)
+- Discovery: OpenAI live search + source ingestion (`backend/discovery.py`)
+- LLM reasoning: report generation (`backend/rag.py`)
+- Embeddings: OpenAI `text-embedding-3-large` with deterministic fallback (`backend/embed.py`)
+- Database: Actian VectorAI DB over PostgreSQL wire protocol (`backend/db.py`)
+
+VectorAI DB GitHub:
+https://github.com/hackmamba-io/actian-vectorAI-db-beta
+
+### Architecture Flow (Mermaid.js)
+
+```will add PNG later
+```
+
+## Workflow
+
+### 1. AI Search + Discovery Workflow
+
+```will add PNG later
+```
+
+### 2. RAG Analysis Workflow
+
+```will add PNG later
+```
+
+## API Endpoints
+
+- `POST /discover/{company}`: Live discovery and ingestion
+- `GET /analyze/{company}`: Risk score + RAG explanation + citations
+- `POST /upload` or `POST /upload/esg`: Upload `.txt`/`.pdf` ESG document
+- `GET /sources/{company}`: List ingested discovered sources
+- `GET /health`: Health check
 
 ## Quick Start
 
-### 1. Environment Setup
+1. Create env file and set credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your OpenAI API key:
+Required vars (example):
 
-```
-OPENAI_API_KEY=sk-your-actual-key
+```bash
+OPENAI_API_KEY=<KEY_GOES_HERE>
+VECTORAI_HOST=localhost
+VECTORAI_PORT=5433
+VECTORAI_DB=vectordb
+VECTORAI_USER=admin
+VECTORAI_PASSWORD=admin
 ```
 
-### 2. Start the Vector Database
+2. Start VectorAI DB:
 
 ```bash
 docker-compose up -d
 ```
 
-### 3. Install Python Dependencies
+3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Ingest Sample Data
+4. Ingest local seed data:
 
 ```bash
 python -m backend.ingest
 ```
 
-This reads files from `data/esg_docs/` and `data/greenwash_cases/`, embeds them via OpenAI, and stores them in VectorAI DB.
-
-### 5. Start the Backend
+5. Run API:
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`. Check health at `http://localhost:8000/health`.
+6. Open app:
 
-### 6. Open the Frontend
+- `http://localhost:8000/`
 
-The frontend is served by FastAPI at the root URL:
+## Discovery Controls
 
-```
-http://localhost:8000/
-```
-
-Open it in your browser, enter a company name (e.g., `GreenCorp`, `PetroGlobal`), and click **Analyze**.
-
-## How It Works
-
-1. User enters a company name
-2. Backend retrieves the company's ESG document chunks from VectorAI DB
-3. Semantic vector search finds the most similar known greenwashing cases
-4. Peer ESG disclosures from the same sector are retrieved for comparison
-5. A greenwashing risk score (0–100) is computed from similarity to known cases
-6. GPT-4o-mini generates an evidence-backed risk assessment with citations
-7. Frontend displays the score, explanation, and matched cases
-
-## API
-
-### `GET /analyze/{company}`
-
-Returns a JSON response:
-
-```json
-{
-  "company": "GreenCorp",
-  "risk_score": 42.5,
-  "explanation": "...",
-  "citations": [
-    {"content": "...", "similarity": 0.65}
-  ],
-  "source_citations": [
-    {"title": "...", "url": "https://...", "publisher": "...", "published_at": "..."}
-  ]
-}
-```
-
-### `GET /health`
-
-Returns `{"status": "ok"}`.
-
-### `POST /discover/{company}`
-
-Searches online sources (reports/news), extracts text, and ingests discovered documents into ESG retrieval.
-
-Query params:
-- `sector` (optional, default `Unknown`)
-- `max_results` (optional, `1-20`, default `8`)
-
-Example:
-
-```bash
-curl -X POST "http://localhost:8000/discover/Amazon?sector=ConsumerDiscretionary&max_results=8"
-```
-
-### `GET /sources/{company}`
-
-Returns discovered-source metadata already ingested for a company.
-
-Example:
-
-```bash
-curl "http://localhost:8000/sources/Amazon?limit=20"
-```
-
-## Discovery Configuration
-
-Optional `.env` settings:
+Optional environment variables:
 
 ```bash
 LIVE_DISCOVERY_ENABLED=true
 DISCOVERY_MODEL=gpt-4o-mini
+DISCOVERY_TIME_BUDGET_SEC=35
+DISCOVERY_SOURCE_TIMEOUT_SEC=8
+DISCOVERY_OPENAI_TIMEOUT_SEC=12
+DISCOVERY_OPENAI_MAX_ATTEMPTS=2
 ```
 
-Notes:
-- Discovery relies on OpenAI web-search-capable tooling availability and account quota.
-- If discovery cannot run (rate limit/quota/tooling unavailable), it returns `discovered: 0` with an `errors` array.
-
-## Project Structure
-
-```
-greenwashing-detection-/
-├── backend/
-│   ├── main.py          # FastAPI app and API endpoints
-│   ├── db.py            # Database connection and table init
-│   ├── embed.py         # OpenAI embedding helper
-│   ├── ingest.py        # Data ingestion CLI
-│   ├── detect.py        # Vector search and risk scoring
-│   ├── discovery.py     # Online source discovery and ingestion
-│   └── rag.py           # RAG explanation generation
-├── frontend/
-│   └── index.html       # Self-contained Tailwind frontend
-├── data/
-│   ├── esg_docs/        # ESG report text files
-│   ├── greenwash_cases/ # Known greenwashing case files
-│   └── news/            # News coverage (placeholder)
-├── .env.example
-├── docker-compose.yml
-├── requirements.txt
-└── readme.md
-```
-
-## Adding Your Own Data
-
-**ESG documents:** Place `.txt` files in `data/esg_docs/` with the naming convention `CompanyName_Sector_DocType.txt` (e.g., `Tesla_Automotive_AnnualReport.txt`).
-
-**Greenwashing cases:** Place any `.txt` file in `data/greenwash_cases/` describing a known greenwashing pattern or case.
-
-Then re-run `python -m backend.ingest` to embed and store the new data.
+These controls prevent discovery from hanging and ensure bounded response time.
