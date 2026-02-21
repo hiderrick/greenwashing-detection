@@ -119,6 +119,55 @@
           </article>
         </section>
 
+        <section id="upload" class="glass mb-8 rounded-3xl p-6 sm:p-8">
+          <h2 class="text-2xl font-bold text-evergreen sm:text-3xl">Upload ESG Report</h2>
+          <p class="mt-2 text-sm text-evergreen/80 sm:text-base">Upload a `.txt` or `.pdf` ESG document to ingest it into the retrieval system.</p>
+
+          <form id="upload-form" class="mt-5 grid gap-3 sm:grid-cols-2">
+            <input
+              type="text"
+              name="company"
+              required
+              placeholder="Company name"
+              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen placeholder-evergreen/50 outline-none focus:border-jade"
+            />
+            <select name="sector" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
+              <option>Unknown</option>
+              <option>Energy</option>
+              <option>Utilities</option>
+              <option>Materials</option>
+              <option>Industrials</option>
+              <option>ConsumerDiscretionary</option>
+              <option>ConsumerStaples</option>
+              <option>HealthCare</option>
+              <option>Financials</option>
+              <option>InformationTechnology</option>
+              <option>CommunicationServices</option>
+              <option>RealEstate</option>
+              <option>Other</option>
+            </select>
+            <select name="doc_type" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
+              <option>ESGReport</option>
+              <option>AnnualReport</option>
+              <option>SustainabilityReport</option>
+              <option>ClimateReport</option>
+              <option>ImpactReport</option>
+              <option>CSRReport</option>
+              <option>Other</option>
+            </select>
+            <input
+              type="file"
+              name="file"
+              accept=".txt,.pdf"
+              required
+              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none file:mr-4 file:rounded-lg file:border-0 file:bg-evergreen file:px-3 file:py-2 file:text-xs file:font-semibold file:text-pistachio hover:file:bg-jade"
+            />
+            <button type="submit" class="rounded-xl bg-evergreen px-6 py-3 text-sm font-semibold text-pistachio transition hover:bg-jade sm:col-span-2">Upload & Ingest</button>
+          </form>
+
+          <p id="upload-status" class="mt-3 text-sm font-medium text-evergreen"></p>
+        </section>
+
         <section class="glass mb-8 rounded-3xl p-6 sm:p-8">
           <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">The Greenwashing Problem</p>
           <h2 class="mt-2 text-2xl font-bold text-evergreen sm:text-3xl">Why It Matters</h2>
@@ -166,7 +215,9 @@
       const API_URL = window.location.origin;
 
       const form = document.getElementById("analyze-form");
+      const uploadForm = document.getElementById("upload-form");
       const statusEl = document.getElementById("analyze-status");
+      const uploadStatusEl = document.getElementById("upload-status");
       const resultsEl = document.getElementById("results");
       const scoreEl = document.getElementById("risk-score");
       const badgeEl = document.getElementById("risk-badge");
@@ -176,6 +227,11 @@
       function setStatus(message, isError = false) {
         statusEl.textContent = message;
         statusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
+      }
+
+      function setUploadStatus(message, isError = false) {
+        uploadStatusEl.textContent = message;
+        uploadStatusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
       }
 
       function riskMeta(score) {
@@ -225,6 +281,41 @@
           setStatus(`Analysis complete for ${payload.company || company}.`);
         } catch (error) {
           setStatus(`Unable to complete analysis: ${String(error)}`, true);
+        }
+      });
+
+      uploadForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(uploadForm);
+        const company = String(formData.get("company") || "").trim();
+        const file = formData.get("file");
+
+        if (!company) {
+          setUploadStatus("Please enter a company name.", true);
+          return;
+        }
+        if (!(file instanceof File) || file.size === 0) {
+          setUploadStatus("Please select a .txt or .pdf file.", true);
+          return;
+        }
+
+        setUploadStatus("Uploading and ingesting report...");
+        try {
+          const response = await fetch(`${API_URL}/upload/esg`, {
+            method: "POST",
+            body: formData,
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            setUploadStatus(payload.detail ? String(payload.detail) : `Upload failed (${response.status}).`, true);
+            return;
+          }
+
+          setUploadStatus(`Upload complete: ${payload.saved_as || "ingested"}.`);
+          uploadForm.reset();
+        } catch (error) {
+          setUploadStatus(`Unable to upload: ${String(error)}`, true);
         }
       });
     </script>
