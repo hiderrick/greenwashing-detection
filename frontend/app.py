@@ -14,31 +14,83 @@ st.markdown(
 st.divider()
 
 st.subheader("Upload ESG Document")
+
+SECTOR_OPTIONS = [
+    "Unknown",
+    "Energy",
+    "Utilities",
+    "Materials",
+    "Industrials",
+    "ConsumerDiscretionary",
+    "ConsumerStaples",
+    "HealthCare",
+    "Financials",
+    "InformationTechnology",
+    "CommunicationServices",
+    "RealEstate",
+    "Other",
+]
+
+DOC_TYPE_OPTIONS = [
+    "ESGReport",
+    "AnnualReport",
+    "SustainabilityReport",
+    "ClimateReport",
+    "ImpactReport",
+    "CSRReport",
+    "Other",
+]
+
 with st.form("upload_esg_form"):
     upload_company = st.text_input("Company", placeholder="e.g. NewEnergyCo")
-    upload_sector = st.text_input("Sector", placeholder="e.g. Energy")
-    upload_doc_type = st.text_input("Document Type", placeholder="e.g. AnnualReport")
+    upload_sector_choice = st.selectbox("Sector", options=SECTOR_OPTIONS, index=0)
+    upload_sector_other = ""
+    if upload_sector_choice == "Other":
+        upload_sector_other = st.text_input("Custom Sector")
+
+    upload_doc_type_choice = st.selectbox("Document Type", options=DOC_TYPE_OPTIONS, index=0)
+    upload_doc_type_other = ""
+    if upload_doc_type_choice == "Other":
+        upload_doc_type_other = st.text_input("Custom Document Type")
+
     upload_file = st.file_uploader("ESG file (.txt or .pdf)", type=["txt", "pdf"])
     upload_submit = st.form_submit_button("Upload and Ingest")
 
 if upload_submit:
-    if not upload_company or not upload_sector or not upload_doc_type or not upload_file:
-        st.warning("Please complete all upload fields and choose a .txt or .pdf file.")
+    sector_value = upload_sector_other.strip() if upload_sector_choice == "Other" else upload_sector_choice
+    doc_type_value = (
+        upload_doc_type_other.strip() if upload_doc_type_choice == "Other" else upload_doc_type_choice
+    )
+
+    if not upload_company.strip() or not upload_file:
+        st.warning("Please provide a company name and choose a .txt or .pdf file.")
+    elif upload_sector_choice == "Other" and not sector_value:
+        st.warning("Please provide a custom sector.")
+    elif upload_doc_type_choice == "Other" and not doc_type_value:
+        st.warning("Please provide a custom document type.")
     else:
         try:
             content_type = "application/pdf" if upload_file.name.lower().endswith(".pdf") else "text/plain"
             files = {"file": (upload_file.name, upload_file.getvalue(), content_type)}
             data = {
-                "company": upload_company,
-                "sector": upload_sector,
-                "doc_type": upload_doc_type,
+                "company": upload_company.strip(),
+                "sector": sector_value,
+                "doc_type": doc_type_value,
             }
             res = requests.post(f"{API_URL}/upload/esg", data=data, files=files, timeout=180)
+            if res.status_code == 404:
+                # Backward compatibility for alternate backend route naming.
+                res = requests.post(f"{API_URL}/upload", data=data, files=files, timeout=180)
             if res.status_code == 200:
                 payload = res.json()
                 st.success(
                     f"Uploaded and ingested: {payload['saved_as']} "
                     f"({payload['chars']} chars)"
+                )
+            elif res.status_code == 404:
+                st.error(
+                    "Upload endpoint not found. Restart backend so new upload routes are loaded: "
+                    "`/upload/esg` and `/upload`."
                 )
             else:
                 st.error(f"Upload failed: {res.status_code} — {res.text}")
