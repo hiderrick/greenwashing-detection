@@ -536,7 +536,7 @@
 
         try {
           if (useDiscoveryEl.checked) {
-            setStatus("Discovering latest reports and news with OpenAI...");
+            setStatus("Discovering latest reports and news...");
             const controller = new AbortController();
             const timeoutMs = 45000;
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
