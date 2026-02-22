@@ -271,6 +271,14 @@ HARDCODED_COMPANIES: dict[str, dict] = {
         ),
         "citations": [
             {
+            "content": "Peer snapshot (Google): similar renewable leadership narrative, but less logistics-driven emissions pressure than Amazon.",
+                "similarity": 0.58,
+            },
+            {
+                "content": "Peer snapshot (Microsoft): comparable long-term net-zero ambition with stronger emphasis on enterprise efficiency disclosures.",
+                "similarity": 0.55,
+            },
+            {
                 "content": "Net-zero pledge messaging with difficulty bending absolute emissions downward.",
                 "similarity": 0.60,
             },
@@ -282,6 +290,7 @@ HARDCODED_COMPANIES: dict[str, dict] = {
                 "content": "Sustainability leadership claims amid rapid network and infrastructure scaling.",
                 "similarity": 0.53,
             },
+            
         ],
             "sources": [
         {

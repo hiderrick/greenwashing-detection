@@ -149,7 +149,7 @@ async def upload_esg(
 def analyze(company: str):
     hardcoded = hardcoded_analyze_payload(company)
     if hardcoded is not None:
-        time.sleep(random.uniform(15.0, 25.0))
+        time.sleep(random.uniform(8.0, 12.0))
         return hardcoded
 
     company_docs = search_company_esg(company)
