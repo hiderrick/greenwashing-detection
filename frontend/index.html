@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Authentic ESG Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
     <script>
       tailwind.config = {
         theme: {
@@ -23,268 +24,438 @@
         },
       };
     </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
     <style>
-      html,
-      body {
+      html, body {
         margin: 0;
         min-height: 100%;
-        color: #1b512d;
-        background:
-          radial-gradient(1000px 600px at 0% 0%, rgba(115, 226, 167, 0.2) 0%, rgba(115, 226, 167, 0) 70%),
-          radial-gradient(900px 500px at 100% 20%, rgba(28, 124, 84, 0.14) 0%, rgba(28, 124, 84, 0) 72%),
-          linear-gradient(180deg, #edf9de 0%, #def4c6 48%, #d7efbe 100%);
+        color: #1B512D; /* Deep Evergreen */
+        background-color: #DEF4C6; /* Soft Pistachio Background Restored */
+        overflow-x: hidden;
       }
 
-      body::before {
-        content: "";
+      /* 3D Canvas Background */
+      #bg-canvas {
         position: fixed;
-        inset: 0;
-        background-image: linear-gradient(rgba(27, 81, 45, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(27, 81, 45, 0.03) 1px, transparent 1px);
-        background-size: 42px 42px;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      #ui-layer {
-        position: relative;
-        z-index: 1;
-      }
-
-      .glass {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        box-shadow: 0 10px 24px rgba(27, 81, 45, 0.1);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
-
-      /* Animated Headline Styles */
-      .cd-words-wrapper {
-        display: inline-block;
-        position: relative;
-        text-align: left;
-        min-width: 300px;
-      }
-      .cd-words-wrapper b {
-        display: inline-block;
-        position: absolute;
-        white-space: nowrap;
-        left: 0;
         top: 0;
-        opacity: 0;
-      }
-      .cd-words-wrapper b.is-visible {
-        position: relative;
-        opacity: 1;
-      }
-      .cd-headline.letters b i {
-        display: inline-block;
-        position: relative;
-        opacity: 0;
-      }
-      .cd-headline.letters b i.in {
-        opacity: 1;
-      }
-      .cd-headline.letters b i.out {
-        opacity: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 50; /* Set high so it appears IN FRONT of everything */
+        pointer-events: none; /* Crucial: lets user click the buttons underneath it */
+        opacity: 0; /* Hidden initially */
+        transition: opacity 1.5s ease-in-out; /* Smooth fade in/out */
       }
 
-      /* Typewriter Cursor */
-      .cd-words-wrapper::after {
-        content: '';
-        position: absolute;
-        right: -5px;
-        top: 5%;
-        height: 90%;
-        width: 3px;
-        background-color: #1b512d;
-        animation: cd-pulse 1s infinite;
+      /* Screen Shake Animation for High Risk */
+      @keyframes screenShake {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        10%, 50%, 90% { transform: translate(-4px, 4px) rotate(-0.5deg); }
+        30%, 70% { transform: translate(4px, -4px) rotate(0.5deg); }
+        20%, 60% { transform: translate(-4px, -4px) rotate(0.5deg); }
+        40%, 80% { transform: translate(4px, 4px) rotate(-0.5deg); }
       }
-      @keyframes cd-pulse {
-        0% { opacity: 1; }
+      .high-risk-shake {
+        animation: screenShake 0.4s infinite;
+      }
+
+      /* Glassmorphism Panels */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(27, 81, 45, 0.1); 
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(222, 244, 198, 0.5); 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1C7C54; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #1B512D; 
+      }
+
+      /* Vanilla JS Typewriter Cursor */
+      .typewriter-cursor {
+        display: inline-block;
+        width: 3px;
+        height: 1em;
+        background-color: #1B512D;
+        animation: blink 1s step-end infinite;
+        vertical-align: middle;
+        margin-left: 4px;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
         50% { opacity: 0; }
-        100% { opacity: 1; }
       }
     </style>
   </head>
-  <body>
-    <div id="ui-layer">
-      <div class="mx-auto w-full max-w-6xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <header class="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <section class="glass relative overflow-hidden rounded-3xl p-6 sm:p-8">
-            <div class="relative z-10">
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-evergreen/75">Greenwashing Detection Platform</p>
-              <h1 class="cd-headline letters mt-4 text-4xl font-bold leading-[0.92] text-evergreen sm:text-6xl lg:text-7xl">
-                <span class="cd-words-wrapper">
-                  <b class="is-visible">Exposing</b>
-                  <b>Challenging</b>
-                  <b>Investigating</b>
-                  <b>Tracking</b>
-                </span>
-                <br class="sm:hidden" />
-                <span class="inline-block">ESG claims.</span>
-              </h1>
-              <p class="mt-5 max-w-2xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
-                Companies make sustainability claims. We verify them. Our platform analyzes disclosures, audits, and independent sources to generate transparent greenwashing risk scores with explainable context.
-              </p>
-              <a href="#analyze" class="mt-6 inline-flex items-center rounded-full border border-jade/25 bg-white/55 px-6 py-3 text-sm font-semibold text-evergreen transition hover:bg-white/75">Run A Company Check</a>
-            </div>
+  <body class="antialiased selection:bg-mint selection:text-evergreen">
+    
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="ui-wrapper" class="relative z-10 mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      
+      <header class="mb-12 text-center">
+        <div class="inline-block rounded-full bg-evergreen/10 px-4 py-1.5 mb-4 border border-evergreen/20">
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-evergreen">Greenwashing Detection Engine</p>
+        </div>
+        <h1 class="text-5xl font-bold tracking-tight text-evergreen sm:text-7xl mb-4">
+          <span id="dynamic-text">Exposing</span><span class="typewriter-cursor"></span><br />
+          <span class="text-jade">ESG Claims.</span>
+        </h1>
+        <p class="mx-auto max-w-2xl text-lg text-evergreen/80">
+          We verify sustainability claims. Our platform analyzes disclosures, audits, and news sources to calculate transparent greenwashing risk scores.
+        </p>
+      </header>
+
+      <div class="grid gap-8 lg:grid-cols-12 align-start">
+        
+        <div class="lg:col-span-5 space-y-8">
+          
+          <section class="glass-panel rounded-3xl p-6 sm:p-8 transition-transform hover:-translate-y-1 duration-300">
+            <h2 class="text-2xl font-bold text-evergreen flex items-center gap-2">
+              <svg class="w-6 h-6 text-jade" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              Company Analysis
+            </h2>
+            <p class="mt-2 text-sm text-evergreen/70">Enter a company name to retrieve greenwashing risk insights.</p>
+
+            <form id="analyze-form" class="mt-6 flex flex-col gap-4">
+              <div class="relative">
+                <input
+                  type="text"
+                  name="company"
+                  required
+                  placeholder="e.g., GreenCorp"
+                  class="w-full rounded-xl border-2 border-mint/50 bg-white/60 px-4 py-3 text-evergreen placeholder-evergreen/40 outline-none transition focus:border-jade focus:bg-white"
+                />
+              </div>
+              
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-pistachio/30 border border-pistachio cursor-pointer transition hover:bg-pistachio/50">
+                <input id="use-discovery" type="checkbox" class="mt-1 h-4 w-4 rounded border-jade text-jade focus:ring-jade" checked />
+                <span class="text-sm font-medium text-evergreen">Use live AI discovery<br/><span class="text-xs text-evergreen/70 font-normal">Pulls latest reports and news before analyzing.</span></span>
+              </label>
+
+              <button type="submit" class="w-full rounded-xl bg-evergreen px-6 py-3.5 text-sm font-bold text-pistachio transition hover:bg-jade hover:shadow-lg hover:shadow-jade/20 flex justify-center items-center gap-2">
+                Analyze Risk
+              </button>
+            </form>
+            <p id="analyze-status" class="mt-4 text-sm font-semibold text-center"></p>
           </section>
 
-          <section class="glass relative overflow-hidden rounded-3xl p-6 sm:p-8">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">What This Solves</p>
-            <ul class="mt-4 space-y-3 text-sm text-evergreen/90 sm:text-base">
-              <li>Distinguishes evidence from marketing claims</li>
-              <li>Benchmarks statements against known greenwashing patterns</li>
-              <li>Provides explainable outputs for analysts and investors</li>
-            </ul>
+          <section class="glass-panel rounded-3xl p-6 sm:p-8 transition-transform hover:-translate-y-1 duration-300">
+            <h2 class="text-2xl font-bold text-evergreen flex items-center gap-2">
+              <svg class="w-6 h-6 text-jade" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Ingest Custom Report
+            </h2>
+            <p class="mt-2 text-sm text-evergreen/70">Upload an ESG document to index it privately.</p>
 
-            <!-- Cartoonish Washing Machine -->
-            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 opacity-20 lg:opacity-40">
-              <svg width="150" height="150" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-evergreen">
-                <rect x="8" y="12" width="48" height="44" rx="4" stroke="currentColor" stroke-width="2" fill="white" />
-                <circle cx="32" cy="38" r="14" stroke="currentColor" stroke-width="2" />
-                <circle cx="32" cy="38" r="10" fill="currentColor" class="opacity-10 animate-pulse" />
-                <rect x="12" y="16" width="40" height="6" rx="1" fill="currentColor" class="opacity-10" />
-                <circle cx="16" cy="19" r="2" fill="currentColor" />
-                <circle cx="22" cy="19" r="2" fill="currentColor" />
-                <path d="M28 38C28 35.7909 29.7909 34 32 34" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="origin-center animate-[spin_3s_linear_infinite]" />
-              </svg>
-            </div>
+            <form id="upload-form" class="mt-6 grid gap-4">
+              <input
+                type="text"
+                name="company"
+                required
+                placeholder="Company name"
+                class="w-full rounded-xl border-2 border-mint/50 bg-white/60 px-4 py-3 text-sm text-evergreen placeholder-evergreen/40 outline-none transition focus:border-jade focus:bg-white"
+              />
+              <div class="grid grid-cols-2 gap-4">
+                <select name="sector" class="w-full rounded-xl border-2 border-mint/50 bg-white/60 px-3 py-3 text-sm text-evergreen outline-none transition focus:border-jade focus:bg-white cursor-pointer">
+                  <option>Unknown</option>
+                  <option>Energy</option>
+                  <option>Technology</option>
+                  <option>Financials</option>
+                  <option>Other</option>
+                </select>
+                <select name="doc_type" class="w-full rounded-xl border-2 border-mint/50 bg-white/60 px-3 py-3 text-sm text-evergreen outline-none transition focus:border-jade focus:bg-white cursor-pointer">
+                  <option>ESGReport</option>
+                  <option>AnnualReport</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <input
+                type="file"
+                name="file"
+                accept=".txt,.pdf"
+                required
+                class="w-full rounded-xl border-2 border-dashed border-jade/40 bg-white/40 px-4 py-6 text-sm text-evergreen outline-none file:mr-4 file:rounded-lg file:border-0 file:bg-evergreen file:px-4 file:py-2 file:text-xs file:font-semibold file:text-pistachio hover:file:bg-jade cursor-pointer transition hover:bg-white/60"
+              />
+              <button type="submit" class="w-full rounded-xl bg-jade px-6 py-3.5 text-sm font-bold text-white transition hover:bg-evergreen hover:shadow-lg hover:shadow-evergreen/20">
+                Upload & Ingest
+              </button>
+            </form>
+            <p id="upload-status" class="mt-4 text-sm font-semibold text-center"></p>
           </section>
-        </header>
 
-        <section id="analyze" class="glass mb-8 rounded-3xl p-6 sm:p-8">
-          <h2 class="text-2xl font-bold text-evergreen sm:text-3xl">Company Analysis</h2>
-          <p class="mt-2 text-sm text-evergreen/80 sm:text-base">Enter a company name to retrieve greenwashing risk insights.</p>
+        </div>
 
-          <form id="analyze-form" class="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <input
-              type="text"
-              name="company"
-              required
-              placeholder="e.g., GreenCorp"
-              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen placeholder-evergreen/50 outline-none focus:border-jade"
-            />
-            <button type="submit" class="rounded-xl bg-evergreen px-6 py-3 text-sm font-semibold text-pistachio transition hover:bg-jade">Analyze Risk</button>
-          </form>
-          <label class="mt-3 inline-flex items-center gap-2 text-sm text-evergreen/85">
-            <input id="use-discovery" type="checkbox" class="h-4 w-4 rounded border-jade/40 text-jade focus:ring-jade" checked />
-            Use OpenAI live discovery (reports + news) before analysis
-          </label>
-
-          <p id="analyze-status" class="mt-3 text-sm font-medium text-evergreen"></p>
-
-          <article id="results" class="mt-5 hidden rounded-2xl border border-white/60 bg-white/55 p-4 sm:p-5">
-            <div class="flex items-center gap-3">
-              <p id="risk-score" class="text-3xl font-bold text-evergreen sm:text-5xl">0<span class="text-base sm:text-lg">/100</span></p>
-              <span id="risk-badge" class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide">Risk</span>
+        <div class="lg:col-span-7">
+          <section id="results" class="glass-panel hidden h-full rounded-3xl p-6 sm:p-10 flex flex-col relative z-20">
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-jade/20 pb-6 mb-6">
+              <div>
+                <p class="text-sm font-bold uppercase tracking-widest text-jade mb-1">Risk Assessment</p>
+                <div class="flex items-baseline gap-2">
+                  <span id="risk-score" class="text-6xl font-black text-evergreen tracking-tighter">0<span class="text-2xl text-evergreen/50 font-normal">/100</span></span>
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0">
+                <span id="risk-badge" class="rounded-full border-2 px-6 py-2 text-sm font-black uppercase tracking-widest bg-white/50">Risk Level</span>
+              </div>
             </div>
-            <p id="risk-explanation" class="mt-4 whitespace-pre-line text-sm leading-relaxed text-evergreen/90 sm:text-base"></p>
-            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-evergreen/70">Matched Greenwashing Patterns</p>
-            <ul id="risk-citations" class="mt-4 grid gap-2"></ul>
-            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-evergreen/70">Discovered Sources Used</p>
-            <ul id="source-citations" class="mt-2 grid gap-2"></ul>
-          </article>
-        </section>
 
-        <section id="upload" class="glass mb-8 rounded-3xl p-6 sm:p-8">
-          <h2 class="text-2xl font-bold text-evergreen sm:text-3xl">Upload ESG Report</h2>
-          <p class="mt-2 text-sm text-evergreen/80 sm:text-base">Upload a `.txt` or `.pdf` ESG document to ingest it into the retrieval system.</p>
+            <div class="flex-grow">
+              <h3 class="text-lg font-bold text-evergreen mb-2">Executive Summary</h3>
+              <p id="risk-explanation" class="whitespace-pre-line text-base leading-relaxed text-evergreen/80 bg-white/60 p-5 rounded-2xl border border-white/80"></p>
 
-          <form id="upload-form" class="mt-5 grid gap-3 sm:grid-cols-2">
-            <input
-              type="text"
-              name="company"
-              required
-              placeholder="Company name"
-              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen placeholder-evergreen/50 outline-none focus:border-jade"
-            />
-            <select name="sector" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
-              <option>Unknown</option>
-              <option>Energy</option>
-              <option>Utilities</option>
-              <option>Materials</option>
-              <option>Industrials</option>
-              <option>ConsumerDiscretionary</option>
-              <option>ConsumerStaples</option>
-              <option>HealthCare</option>
-              <option>Financials</option>
-              <option>InformationTechnology</option>
-              <option>CommunicationServices</option>
-              <option>RealEstate</option>
-              <option>Other</option>
-            </select>
-            <select name="doc_type" class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none focus:border-jade">
-              <option>ESGReport</option>
-              <option>AnnualReport</option>
-              <option>SustainabilityReport</option>
-              <option>ClimateReport</option>
-              <option>ImpactReport</option>
-              <option>CSRReport</option>
-              <option>Other</option>
-            </select>
-            <input
-              type="file"
-              name="file"
-              accept=".txt,.pdf"
-              required
-              class="w-full rounded-xl border border-jade/25 bg-white/70 px-4 py-3 text-sm text-evergreen outline-none file:mr-4 file:rounded-lg file:border-0 file:bg-evergreen file:px-3 file:py-2 file:text-xs file:font-semibold file:text-pistachio hover:file:bg-jade"
-            />
-            <button type="submit" class="rounded-xl bg-evergreen px-6 py-3 text-sm font-semibold text-pistachio transition hover:bg-jade sm:col-span-2">Upload & Ingest</button>
-          </form>
+              <div class="grid gap-6 mt-8 sm:grid-cols-2">
+                <div>
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-jade mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Flagged Patterns
+                  </h3>
+                  <ul id="risk-citations" class="space-y-3 max-h-64 overflow-y-auto pr-2 relative z-30"></ul>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-jade mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 002-2V9.5L18.5 7H20"></path></svg>
+                    Discovered Sources
+                  </h3>
+                  <ul id="source-citations" class="space-y-3 max-h-64 overflow-y-auto pr-2 relative z-30"></ul>
+                </div>
+              </div>
+            </div>
 
-          <p id="upload-status" class="mt-3 text-sm font-medium text-evergreen"></p>
-        </section>
+          </section>
 
-        <section class="glass mb-8 rounded-3xl p-6 sm:p-8">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">The Greenwashing Problem</p>
-          <h2 class="mt-2 text-2xl font-bold text-evergreen sm:text-3xl">Why It Matters</h2>
-          <p class="mt-3 max-w-3xl text-sm leading-relaxed text-evergreen/85 sm:text-base">
-            Greenwashing happens when companies overstate environmental progress or hide critical context. It creates false confidence for investors,
-            weakens trust in ESG reporting, and can redirect capital away from genuinely sustainable businesses.
-          </p>
-          <div class="mt-5 grid gap-3 sm:grid-cols-3">
-            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Misleading Claims</p>
-              <p class="mt-2 text-sm text-evergreen/90">Broad “eco-friendly” statements without measurable evidence.</p>
-            </article>
-            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Selective Reporting</p>
-              <p class="mt-2 text-sm text-evergreen/90">Highlighting wins while omitting high-impact emissions data.</p>
-            </article>
-            <article class="rounded-2xl border border-white/60 bg-white/45 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-evergreen/70">Weak Verification</p>
-              <p class="mt-2 text-sm text-evergreen/90">Claims not backed by peer comparisons or source evidence.</p>
-            </article>
-          </div>
-        </section>
+          <section id="empty-state" class="glass-panel h-full rounded-3xl p-6 sm:p-10 flex flex-col items-center justify-center text-center min-h-[500px]">
+            <div class="w-24 h-24 rounded-full bg-mint/20 flex items-center justify-center mb-6 border border-mint/40 shadow-inner">
+              <svg class="w-12 h-12 text-jade" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-evergreen mb-2">Awaiting Analysis</h3>
+            <p class="text-evergreen/70 max-w-sm">Enter a company name on the left to initiate the AI screening process. Results, citations, and the machine will appear here.</p>
+          </section>
 
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <article class="glass rounded-2xl p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">Strategy</p>
-            <h3 class="mt-2 text-xl font-bold text-evergreen">Signal Over Noise</h3>
-            <p class="mt-2 text-sm text-evergreen/85">We focus on material ESG claims and measurable proof quality.</p>
-          </article>
-          <article class="glass rounded-2xl p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">3D Web</p>
-            <h3 class="mt-2 text-xl font-bold text-evergreen">Calm, Professional UI</h3>
-            <p class="mt-2 text-sm text-evergreen/85">A minimal experience that keeps attention on analysis results.</p>
-          </article>
-          <article class="glass rounded-2xl p-5 sm:col-span-2 lg:col-span-1">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-evergreen/70">Knowledge Retrieval</p>
-            <h3 class="mt-2 text-xl font-bold text-evergreen">Evidence-Backed Results</h3>
-            <p class="mt-2 text-sm text-evergreen/85">Every output is tied to retrieved examples and similarity signals.</p>
-          </article>
-        </section>
+        </div>
       </div>
     </div>
 
     <script>
+      // ==========================================
+      // 1. THREE.JS 3D "Moving Washing Machine" Background
+      // ==========================================
+      const canvas = document.querySelector('#bg-canvas');
+      const scene = new THREE.Scene();
+      
+      // Transparent background so the HTML Pistachio color and UI shows through
+      scene.background = null; 
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 40); // Centered camera
+
+      // Enabled alpha channel so it's transparent over the UI
+      const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0); // Explicitly ensure transparent background
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambientLight);
+      
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(10, 20, 10);
+      scene.add(dirLight);
+
+      const innerLight = new THREE.PointLight(0x73E2A7, 2, 20); // Mint glow inside the drum
+      innerLight.position.set(0, 0, 5);
+
+      // Create the Washing Machine Group
+      const machineGroup = new THREE.Group();
+
+      // Materials
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf0fdf4, roughness: 0.1, metalness: 0.1 }); 
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x1B512D, roughness: 0.5 }); 
+      const jadeMat = new THREE.MeshStandardMaterial({ color: 0x1C7C54, roughness: 0.4 }); 
+      const glassMat = new THREE.MeshPhysicalMaterial({ 
+        color: 0x73E2A7, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.1, metalness: 0.1 
+      });
+
+      // 1. Machine Body (Main Box)
+      const bodyGeo = new THREE.BoxGeometry(20, 24, 16);
+      const machineBody = new THREE.Mesh(bodyGeo, bodyMat);
+      machineGroup.add(machineBody);
+
+      // 2. Control Panel
+      const panelGeo = new THREE.BoxGeometry(20, 4, 16);
+      const controlPanel = new THREE.Mesh(panelGeo, bodyMat);
+      controlPanel.position.set(0, 14, 0);
+      
+      const dialGeo = new THREE.CylinderGeometry(1.5, 1.5, 1, 16);
+      const dial = new THREE.Mesh(dialGeo, jadeMat);
+      dial.rotation.x = Math.PI / 2;
+      dial.position.set(6, 14, 8.5);
+      machineGroup.add(dial);
+
+      const buttonGeo = new THREE.BoxGeometry(1, 0.5, 0.5);
+      const button1 = new THREE.Mesh(buttonGeo, darkMat);
+      button1.position.set(-6, 14, 8.25);
+      machineGroup.add(button1);
+      const button2 = new THREE.Mesh(buttonGeo, darkMat);
+      button2.position.set(-4, 14, 8.25);
+      machineGroup.add(button2);
+      machineGroup.add(controlPanel);
+
+      // 3. The Door Rim
+      const rimGeo = new THREE.TorusGeometry(6, 1.2, 32, 64);
+      const doorRim = new THREE.Mesh(rimGeo, darkMat);
+      doorRim.position.set(0, 0, 8.5);
+      machineGroup.add(doorRim);
+
+      // 4. The Glass Window
+      const windowGeo = new THREE.CylinderGeometry(5.8, 5.8, 0.5, 32);
+      const doorGlass = new THREE.Mesh(windowGeo, glassMat);
+      doorGlass.rotation.x = Math.PI / 2;
+      doorGlass.position.set(0, 0, 8.2);
+      machineGroup.add(doorGlass);
+
+      // 5. The Spinning Inner Drum
+      const drumGroup = new THREE.Group();
+      drumGroup.position.set(0, 0, 2); 
+
+      const drumGeo = new THREE.CylinderGeometry(5.5, 5.5, 10, 24, 1, true);
+      const drumMesh = new THREE.Mesh(drumGeo, new THREE.MeshStandardMaterial({ 
+        color: 0x1C7C54, wireframe: true, transparent: true, opacity: 0.6 
+      }));
+      drumMesh.rotation.x = Math.PI / 2;
+      drumGroup.add(drumMesh);
+      drumGroup.add(innerLight); 
+
+      // 6. Water / Bubbles inside
+      const bubbleGeo = new THREE.SphereGeometry(0.8, 16, 16);
+      const bubbles = [];
+      for(let i=0; i<20; i++) {
+        const bubble = new THREE.Mesh(bubbleGeo, glassMat);
+        bubble.position.set(
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 6
+        );
+        bubble.userData = {
+          speed: Math.random() * 0.05 + 0.02,
+          angle: Math.random() * Math.PI * 2,
+          radius: Math.random() * 4 + 1
+        };
+        drumGroup.add(bubble);
+        bubbles.push(bubble);
+      }
+
+      machineGroup.add(drumGroup);
+      
+      // Position machine dead-center, shifted slightly down
+      machineGroup.position.set(0, -2, -10);
+      scene.add(machineGroup);
+
+      // Animation & Shaking Variables
+      let time = 0;
+      let machineShakeIntensity = 0; // Controlled by the analysis risk score
+
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.05;
+
+        // Drum always spins
+        drumGroup.rotation.z -= 0.08;
+
+        // Swirl bubbles
+        bubbles.forEach(bubble => {
+          bubble.userData.angle += bubble.userData.speed;
+          bubble.position.x = Math.cos(bubble.userData.angle) * bubble.userData.radius;
+          bubble.position.y = Math.sin(bubble.userData.angle) * bubble.userData.radius;
+        });
+
+        // Vibrate/Shake the machine based on risk score intensity
+        if (machineShakeIntensity > 0) {
+          machineGroup.position.x = Math.sin(time * 20) * machineShakeIntensity;
+          machineGroup.position.y = -2 + Math.cos(time * 25) * machineShakeIntensity;
+          machineGroup.rotation.z = Math.sin(time * 15) * (machineShakeIntensity * 0.02);
+        } else {
+          // Smooth idle
+          machineGroup.position.x = 0;
+          machineGroup.position.y = -2;
+          machineGroup.rotation.z = 0;
+        }
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Handle Resize
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // ==========================================
+      // 2. Vanilla JS Typewriter
+      // ==========================================
+      const words = ["Exposing", "Challenging", "Investigating", "Tracking"];
+      let i = 0;
+      let timer;
+
+      function typingEffect() {
+        let word = words[i].split("");
+        var loopTyping = function() {
+          if (word.length > 0) {
+            document.getElementById('dynamic-text').innerHTML += word.shift();
+          } else {
+            deletingEffect();
+            return false;
+          }
+          timer = setTimeout(loopTyping, 100);
+        };
+        loopTyping();
+      }
+
+      function deletingEffect() {
+        let word = words[i].split("");
+        var loopDeleting = function() {
+          if (word.length > 0) {
+            word.pop();
+            document.getElementById('dynamic-text').innerHTML = word.join("");
+          } else {
+            if (words.length > (i + 1)) {
+              i++;
+            } else {
+              i = 0;
+            }
+            typingEffect();
+            return false;
+          }
+          timer = setTimeout(loopDeleting, 60);
+        };
+        setTimeout(loopDeleting, 2000);
+      }
+      
+      document.getElementById('dynamic-text').innerHTML = "";
+      typingEffect();
+
+      // ==========================================
+      // 3. Application API Logic & Shake Triggers
+      // ==========================================
       const API_URL = window.location.origin;
 
       const form = document.getElementById("analyze-form");
@@ -292,7 +463,10 @@
       const statusEl = document.getElementById("analyze-status");
       const uploadStatusEl = document.getElementById("upload-status");
       const useDiscoveryEl = document.getElementById("use-discovery");
+      
       const resultsEl = document.getElementById("results");
+      const emptyStateEl = document.getElementById("empty-state");
+      
       const scoreEl = document.getElementById("risk-score");
       const badgeEl = document.getElementById("risk-badge");
       const explanationEl = document.getElementById("risk-explanation");
@@ -301,18 +475,46 @@
 
       function setStatus(message, isError = false) {
         statusEl.textContent = message;
-        statusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
+        statusEl.className = `mt-4 text-sm font-semibold text-center ${isError ? "text-red-600" : "text-jade"}`;
       }
 
       function setUploadStatus(message, isError = false) {
         uploadStatusEl.textContent = message;
-        uploadStatusEl.className = `mt-3 text-sm font-medium ${isError ? "text-red-700" : "text-evergreen"}`;
+        uploadStatusEl.className = `mt-4 text-sm font-semibold text-center ${isError ? "text-red-600" : "text-jade"}`;
       }
 
-      function riskMeta(score) {
-        if (score > 60) return { label: "High Risk", classes: "border-red-700 text-red-700" };
-        if (score > 30) return { label: "Medium Risk", classes: "border-amber-700 text-amber-700" };
-        return { label: "Low Risk", classes: "border-jade text-jade" };
+      function applyRiskAnimations(score) {
+        const bodyWrapper = document.getElementById("ui-wrapper");
+        
+        // Reset animations
+        bodyWrapper.classList.remove("high-risk-shake");
+        
+        let meta;
+        if (score > 60) {
+          // High Risk: Whole screen shakes aggressively
+          bodyWrapper.classList.add("high-risk-shake");
+          machineShakeIntensity = 0.8; 
+          meta = { label: "High Risk", classes: "border-red-600 text-red-600 bg-red-50" };
+        } 
+        else if (score > 30) {
+          // Medium Risk: 3D Machine vibrates noticeably, screen is stable
+          machineShakeIntensity = 0.3; 
+          meta = { label: "Medium Risk", classes: "border-amber-600 text-amber-600 bg-amber-50" };
+        } 
+        else {
+          // Low Risk: Smooth sailing initially
+          machineShakeIntensity = 0.05; 
+          meta = { label: "Low Risk", classes: "border-jade text-jade bg-jade/10" };
+        }
+
+        // 4-SECOND TIMER: Stop shaking AND fade out the machine
+        setTimeout(() => {
+          bodyWrapper.classList.remove("high-risk-shake");
+          machineShakeIntensity = 0; // Stop machine shaking entirely
+          document.getElementById('bg-canvas').style.opacity = '0'; // Hide the machine
+        }, 4000);
+
+        return meta;
       }
 
       form.addEventListener("submit", async (event) => {
@@ -323,12 +525,18 @@
           return;
         }
 
-        setStatus("Running analysis...");
+        setStatus("Initializing analysis...");
         resultsEl.classList.add("hidden");
+        emptyStateEl.classList.remove("hidden");
+        
+        // Reset shaking state while loading
+        document.getElementById("ui-wrapper").classList.remove("high-risk-shake");
+        machineShakeIntensity = 0;
+        document.getElementById('bg-canvas').style.opacity = '0'; // Hide machine on new run
 
         try {
           if (useDiscoveryEl.checked) {
-            setStatus("Discovering latest reports and news with OpenAI...");
+            setStatus("Discovering latest reports and news...");
             const controller = new AbortController();
             const timeoutMs = 45000;
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -342,7 +550,7 @@
               discoverPayload = await discoverResp.json().catch(() => ({}));
             } catch (discoverError) {
               if (discoverError && discoverError.name === "AbortError") {
-                setStatus("Discovery timed out after 45s. You can run analysis on existing docs or retry.", true);
+                setStatus("Discovery timed out after 45s. Running analysis on existing docs...", true);
                 return;
               }
               throw discoverError;
@@ -358,20 +566,10 @@
               );
               return;
             }
-            const discovered = Number(discoverPayload.discovered || 0);
-            const ingested = Number(discoverPayload.ingested || 0);
-            const errors = Array.isArray(discoverPayload.errors) ? discoverPayload.errors : [];
-            if (errors.length > 0) {
-              setStatus(
-                `Discovery warning (${discovered} found, ${ingested} ingested): ${errors[0]}. If this mentions rate limits, check OpenAI billing/quota.`,
-                false,
-              );
-            } else {
-              setStatus(`Discovery complete: ${discovered} found, ${ingested} ingested.`);
-            }
+            setStatus("Discovery complete. Compiling risk scores...");
           }
 
-          setStatus("Running analysis...");
+          setStatus("Running deep analysis...");
           const response = await fetch(`${API_URL}/analyze/${encodeURIComponent(company)}`);
           const payload = await response.json().catch(() => ({}));
 
@@ -381,68 +579,60 @@
           }
 
           const score = Number(payload.risk_score || 0);
-          const meta = riskMeta(score);
+          
+          // ** SHOW MACHINE AND TRIGGER 4-SECOND SHAKE ANIMATION **
+          document.getElementById('bg-canvas').style.opacity = '1';
+          const meta = applyRiskAnimations(score);
 
-          scoreEl.innerHTML = `${score.toFixed(2)}<span class="text-base sm:text-lg">/100</span>`;
+          scoreEl.innerHTML = `${score.toFixed(1)}<span class="text-2xl text-evergreen/50 font-normal">/100</span>`;
           badgeEl.textContent = meta.label;
-          badgeEl.className = `rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${meta.classes}`;
+          badgeEl.className = `rounded-full border-2 px-6 py-2 text-sm font-black uppercase tracking-widest ${meta.classes}`;
           explanationEl.textContent = String(payload.explanation || "No explanation returned.");
+          
           if (payload.status === "no_data") {
             explanationEl.textContent = `${String(payload.explanation || "No data found.")}\n\nNo risk score can be computed until documents are ingested.`;
           }
 
+          // Populate Matched Patterns
           citationsEl.innerHTML = "";
           const citations = Array.isArray(payload.citations) ? payload.citations : [];
           for (const citation of citations) {
             const li = document.createElement("li");
-            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/90";
-            li.textContent = `Similarity ${Number(citation.similarity || 0).toFixed(3)}: ${String(citation.content || "")}`;
+            li.className = "rounded-xl border border-jade/20 bg-white/70 p-4 text-sm text-evergreen/90 transition hover:bg-white";
+            li.innerHTML = `<span class="block text-xs font-bold text-jade mb-1">Similarity: ${Number(citation.similarity || 0).toFixed(3)}</span>${String(citation.content || "")}`;
             citationsEl.appendChild(li);
           }
           if (citations.length === 0) {
-            const li = document.createElement("li");
-            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/80";
-            li.textContent = "No matched greenwashing pattern citations found.";
-            citationsEl.appendChild(li);
+            citationsEl.innerHTML = `<li class="rounded-xl border border-jade/20 bg-white/70 p-4 text-sm text-evergreen/60 italic">No matched greenwashing pattern citations found.</li>`;
           }
 
+          // Populate Source Citations
           sourceCitationsEl.innerHTML = "";
           const sources = Array.isArray(payload.source_citations) ? payload.source_citations : [];
           for (const source of sources) {
             const li = document.createElement("li");
-            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/90";
+            li.className = "rounded-xl border border-jade/20 bg-white/70 p-4 text-sm text-evergreen transition hover:bg-white";
+            
             const title = String(source.title || "Untitled source");
             const publisher = String(source.publisher || "Unknown publisher");
             const published = String(source.published_at || "").trim();
             const url = String(source.url || "");
-            const titleP = document.createElement("p");
-            titleP.className = "font-semibold";
-            titleP.textContent = title;
-            li.appendChild(titleP);
-
-            const metaP = document.createElement("p");
-            metaP.className = "text-xs text-evergreen/70";
-            metaP.textContent = published ? `${publisher} • ${published}` : publisher;
-            li.appendChild(metaP);
-
+            
+            let html = `<p class="font-bold mb-1 leading-tight">${title}</p>
+                        <p class="text-xs text-evergreen/60 uppercase tracking-wide font-semibold">${published ? `${publisher} • ${published}` : publisher}</p>`;
+            
             if (url) {
-              const link = document.createElement("a");
-              link.className = "mt-1 inline-block text-xs underline";
-              link.href = url;
-              link.target = "_blank";
-              link.rel = "noreferrer";
-              link.textContent = "View source";
-              li.appendChild(link);
+              html += `<a href="${url}" target="_blank" rel="noreferrer" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-jade hover:text-evergreen transition">View Source <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>`;
             }
+            li.innerHTML = html;
             sourceCitationsEl.appendChild(li);
           }
+          
           if (sources.length === 0) {
-            const li = document.createElement("li");
-            li.className = "rounded-xl border border-white/60 bg-white/45 p-3 text-sm text-evergreen/80";
-            li.textContent = "No discovered source citations available yet. Enable live discovery and analyze again.";
-            sourceCitationsEl.appendChild(li);
+            sourceCitationsEl.innerHTML = `<li class="rounded-xl border border-jade/20 bg-white/70 p-4 text-sm text-evergreen/60 italic">No discovered source citations available yet.</li>`;
           }
 
+          emptyStateEl.classList.add("hidden");
           resultsEl.classList.remove("hidden");
           setStatus(`Analysis complete for ${payload.company || company}.`);
         } catch (error) {
@@ -465,7 +655,7 @@
           return;
         }
 
-        setUploadStatus("Uploading and ingesting report...");
+        setUploadStatus("Uploading and indexing report...");
         try {
           const response = await fetch(`${API_URL}/upload/esg`, {
             method: "POST",
@@ -478,79 +668,10 @@
             return;
           }
 
-          setUploadStatus(`Upload complete: ${payload.saved_as || "ingested"}.`);
+          setUploadStatus(`Upload complete! Saved as: ${payload.saved_as || "ingested"}.`);
           uploadForm.reset();
         } catch (error) {
           setUploadStatus(`Unable to upload: ${String(error)}`, true);
-        }
-      });
-
-      // Animated Headline Logic
-      jQuery(document).ready(function($) {
-        var animationDelay = 1500, // pause between words
-          typeSpeed = 40,
-          backspaceSpeed = 30;
-
-        initHeadline();
-
-        function initHeadline() {
-          singleLetters($('.cd-headline.letters').find('b'));
-          animateHeadline($('.cd-headline'));
-        }
-
-        function singleLetters($words) {
-          $words.each(function() {
-            var word = $(this),
-              letters = word.text().split(''),
-              selected = word.hasClass('is-visible');
-            for (var i in letters) {
-              letters[i] = (selected) ? '<i class="in">' + letters[i] + '</i>' : '<i>' + letters[i] + '</i>';
-            }
-            var newLetters = letters.join('');
-            word.html(newLetters);
-          });
-        }
-
-        function animateHeadline($headlines) {
-          var duration = animationDelay;
-          $headlines.each(function() {
-            var headline = $(this);
-            setTimeout(function() { hideWord(headline.find('.is-visible').eq(0)) }, duration);
-          });
-        }
-
-        function hideWord($word) {
-          var nextWord = takeNext($word);
-          // Hide letters right-to-left
-          hideLetter($word.find('i').last(), $word, nextWord, backspaceSpeed);
-        }
-
-        function hideLetter($letter, $oldWord, $newWord, $duration) {
-          $letter.removeClass('in').addClass('out');
-          if (!$letter.is(':first-child')) {
-            setTimeout(function() { hideLetter($letter.prev(), $oldWord, $newWord, $duration); }, $duration);
-          } else {
-            // All letters hidden, switch word and start typing
-            setTimeout(function() {
-              $oldWord.removeClass('is-visible').addClass('is-hidden');
-              $newWord.removeClass('is-hidden').addClass('is-visible');
-              showLetter($newWord.find('i').first(), $oldWord, $newWord, typeSpeed);
-            }, 300);
-          }
-        }
-
-        function showLetter($letter, $oldWord, $newWord, $duration) {
-          $letter.addClass('in').removeClass('out');
-          if (!$letter.is(':last-child')) {
-            setTimeout(function() { showLetter($letter.next(), $oldWord, $newWord, $duration); }, $duration);
-          } else {
-            // Word is typed, pause and repeat
-            setTimeout(function() { animateHeadline($oldWord.parents('.cd-headline')) }, animationDelay);
-          }
-        }
-
-        function takeNext($word) {
-          return (!$word.is(':last-child')) ? $word.next() : $word.parent().children().eq(0);
         }
       });
     </script>

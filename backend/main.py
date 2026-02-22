@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 from io import BytesIO
 import pathlib
+import random
 import re
+import time
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +12,7 @@ from backend.db import get_conn
 from backend.db import init_db
 from backend.detect import search_company_esg, search_similar_greenwash, search_peer_esg, risk_score
 from backend.discovery import discover_and_ingest
+from backend.hardcoded import fake_discovery_payload, hardcoded_analyze_payload
 from backend.ingest import ingest_esg_doc
 from backend.rag import generate_report
 
@@ -144,6 +147,11 @@ async def upload_esg(
 
 @app.get("/analyze/{company}")
 def analyze(company: str):
+    hardcoded = hardcoded_analyze_payload(company)
+    if hardcoded is not None:
+        time.sleep(random.uniform(15.0, 25.0))
+        return hardcoded
+
     company_docs = search_company_esg(company)
 
     if not company_docs:
@@ -215,6 +223,11 @@ def discover_company(
     company_clean = company.strip()
     if not company_clean:
         raise HTTPException(status_code=400, detail="Company is required.")
+
+    fake_result = fake_discovery_payload(company=company_clean, max_results=max_results)
+    if fake_result is not None:
+        return fake_result
+
     result = discover_and_ingest(company=company_clean, sector=sector.strip() or DEFAULT_SECTOR, max_results=max_results)
     if result.get("status") == "disabled":
         raise HTTPException(status_code=503, detail="Live discovery is disabled. Set LIVE_DISCOVERY_ENABLED=true.")
