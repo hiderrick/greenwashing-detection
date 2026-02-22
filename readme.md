@@ -74,15 +74,18 @@ VECTORAI_PASSWORD=admin
 docker-compose up -d
 ```
 
-3. Install dependencies:
+3. Create a virtual environment and install dependencies:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate   # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 4. Ingest local seed data:
 
 ```bash
+source .venv/bin/activate   # if not already activated
 python -m backend.ingest
 ```
 
@@ -93,6 +96,7 @@ uvicorn backend.main:app --reload
 ```
 
 6. Open app:
+
 
 - `http://localhost:8000/`
 
