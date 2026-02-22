@@ -1,4 +1,4 @@
-# Greenwashing Risk Detector
+# Greenwashing Detection Engine
 
 This project helps verify (or expose) sustainability claims for companies.
 
